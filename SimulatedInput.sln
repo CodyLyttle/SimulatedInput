@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulatedInput", "SimulatedInput\SimulatedInput.csproj", "{1FD13A5E-A165-46CD-96B5-4B62439FF5AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FD13A5E-A165-46CD-96B5-4B62439FF5AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FD13A5E-A165-46CD-96B5-4B62439FF5AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FD13A5E-A165-46CD-96B5-4B62439FF5AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FD13A5E-A165-46CD-96B5-4B62439FF5AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
