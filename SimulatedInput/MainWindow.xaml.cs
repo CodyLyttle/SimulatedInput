@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using SimulatedInput.library;
 using SimulatedInput.library.wrapper;
 
@@ -9,17 +10,19 @@ namespace SimulatedInput
 {
     public partial class MainWindow : Window
     {
+        private static readonly TimeSpan DelayTime = TimeSpan.FromSeconds(3);
         private readonly InputSender _inputSender = new();
 
         public MainWindow()
         {
             InitializeComponent();
             SendInputButton.Click += SendInputButtonOnClick;
+            SendInputTextBox.PreviewKeyDown += SendInputTextBoxOnPreviewKeyDown;
         }
 
         private async void SendInputButtonOnClick(object sender, RoutedEventArgs e)
         {
-            await SendDelayedInput(TimeSpan.FromSeconds(3), new ushort[]
+            await SendDelayedInput(DelayTime, new ushort[]
             {
                 0x48, 0x45, 0x4C, 0x4C, 0x4F // 'hello'
             });
@@ -37,6 +40,22 @@ namespace SimulatedInput
             }
 
             _inputSender.SendKeystrokes(inputActions.ToArray());
+        }
+        
+
+        private async void SendInputTextBoxOnPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter)
+                return;
+
+            await SendDelayedText(DelayTime, SendInputTextBox.Text);
+            SendInputTextBox.Clear();
+        }
+
+        private async Task SendDelayedText(TimeSpan delayTime, string text)
+        {
+            await Task.Delay(delayTime);
+            _inputSender.SendText(text);
         }
     }
 }

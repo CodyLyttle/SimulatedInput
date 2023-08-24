@@ -17,6 +17,27 @@ public class InputSender
         SendInputs(inputActions);
     }
 
+    public void SendChar(char character)
+    {
+        SendInputs(new UnicodeInputAction(character, false),
+            new UnicodeInputAction(character, true));
+    }
+
+    public void SendText(string text)
+    {
+        // TODO: Send in chunks to minimise memory footprint on large strings.
+        int charCount = text.Length;
+        var actions = new IInputAction[charCount * 2];
+        for (var i = 0; i < charCount; i++)
+        {
+            int actionIndex = i * 2;
+            actions[actionIndex] = new UnicodeInputAction(text[i], false);
+            actions[++actionIndex] = new UnicodeInputAction(text[i], true);
+        }
+        
+        SendInputs(actions);
+    }
+
     private void SendInputs(params IInputAction[] inputActions)
     {
         if (inputActions.Length == 0)
