@@ -5,14 +5,12 @@ using System.Windows;
 using System.Windows.Input;
 using SimulatedInput.Library;
 using SimulatedInput.Library.Enum;
-using SimulatedInput.Library.Wrapper;
 
 namespace SimulatedInput
 {
     public partial class MainWindow : Window
     {
         private static readonly TimeSpan DelayTime = TimeSpan.FromSeconds(3);
-        private readonly InputSender _inputSender = new();
 
         public MainWindow()
         {
@@ -23,7 +21,7 @@ namespace SimulatedInput
 
         private async void SendInputButtonOnClick(object sender, RoutedEventArgs e)
         {
-            await SendDelayedInput(DelayTime, new VirtualKeyCode[]
+            await SendDelayedInput(DelayTime, new []
             {
                 VirtualKeyCode.H, 
                 VirtualKeyCode.E, 
@@ -37,14 +35,14 @@ namespace SimulatedInput
         {
             await Task.Delay(delayTime);
 
-            List<IInputAction> inputActions = new();
+            InputSequence sequence = new();
             foreach (VirtualKeyCode keyCode in virtualKeyCodes)
             {
-                inputActions.Add(new VirtualKeyInputAction(keyCode, false));
-                inputActions.Add(new VirtualKeyInputAction(keyCode, true));
+                sequence.Add(KeyboardInputs.KeyDown(keyCode));
+                sequence.Add(KeyboardInputs.KeyUp(keyCode));
             }
 
-            _inputSender.SendKeystrokes(inputActions.ToArray());
+            InputSender.Send(sequence);
         }
         
 
@@ -52,15 +50,17 @@ namespace SimulatedInput
         {
             if (e.Key != Key.Enter)
                 return;
-
+            
+            SendInputTextBox.IsEnabled = false;
             await SendDelayedText(DelayTime, SendInputTextBox.Text);
             SendInputTextBox.Clear();
+            SendInputTextBox.IsEnabled = true;
         }
 
         private async Task SendDelayedText(TimeSpan delayTime, string text)
         {
             await Task.Delay(delayTime);
-            _inputSender.SendText(text);
+            InputSender.Send(KeyboardInputs.TextToKeyPresses(text));
         }
     }
 }
