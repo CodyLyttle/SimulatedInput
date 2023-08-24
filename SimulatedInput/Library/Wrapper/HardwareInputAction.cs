@@ -1,7 +1,7 @@
-﻿using SimulatedInput.library.native.structs;
-using SimulatedInput.library.native.unions;
+﻿using SimulatedInput.Library.Native;
+using SimulatedInput.Library.Native.Structs;
 
-namespace SimulatedInput.library.wrapper;
+namespace SimulatedInput.Library.Wrapper;
 
 public class HardwareInputAction : IInputAction, IInteroperable<HARDWAREINPUT>
 {

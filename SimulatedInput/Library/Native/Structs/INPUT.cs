@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
-using SimulatedInput.library.native.unions;
 
-namespace SimulatedInput.library.native.structs;
+namespace SimulatedInput.Library.Native.Structs;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct INPUT

@@ -1,8 +1,7 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using SimulatedInput.library.native.structs;
+﻿using System.Runtime.InteropServices;
+using SimulatedInput.Library.Native.Structs;
 
-namespace SimulatedInput.library.native.unions;
+namespace SimulatedInput.Library.Native;
 
 [StructLayout(LayoutKind.Explicit)]
 public struct InputArgumentsUnion

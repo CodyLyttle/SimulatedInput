@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel;
-using SimulatedInput.library.native;
-using SimulatedInput.library.native.structs;
-using SimulatedInput.library.wrapper;
+using SimulatedInput.Library.Native;
+using SimulatedInput.Library.Native.Structs;
+using SimulatedInput.Library.Wrapper;
 
-namespace SimulatedInput.library;
+namespace SimulatedInput.Library;
 
 public class InputSender
 {

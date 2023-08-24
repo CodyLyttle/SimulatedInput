@@ -1,43 +1,40 @@
 ﻿using System;
-using SimulatedInput.library.native.structs;
-using SimulatedInput.library.native.unions;
+using SimulatedInput.Library.Native;
+using SimulatedInput.Library.Native.Structs;
 
-namespace SimulatedInput.library.wrapper;
+namespace SimulatedInput.Library.Wrapper;
 
-public sealed class VirtualKeyInputAction : IInputAction, IInteroperable<KEYBDINPUT>
+public class UnicodeInputAction : IInputAction, IInteroperable<KEYBDINPUT>
 {
     private static class Flag
     {
         public const uint KeyUp = 0x0002;
+        public const uint Unicode = 0x0004; 
     }
-
+    
     public InputType Type => InputType.Keyboard;
-    public ushort KeyCode { get; }
+    public char Character { get; }
     public bool IsKeyUp { get; }
     public uint Timestamp { get; set; } = 0;
     public UIntPtr ExtraInfo { get; set; } = UIntPtr.Zero;
+    
 
-
-    public VirtualKeyInputAction(ushort keyCode, bool isKeyUp)
+    public UnicodeInputAction(char character, bool isKeyUp)
     {
-        if (keyCode > 254)
-            throw new ArgumentOutOfRangeException(nameof(keyCode), keyCode,
-                "Must be a virtual key code in the range of 0-254");
-
-        KeyCode = keyCode;
+        Character = character;
         IsKeyUp = isKeyUp;
     }
 
     public KEYBDINPUT ToInteropStruct()
     {
-        uint flags = IsKeyUp 
-            ? Flag.KeyUp 
-            : 0;
-
+        uint flags = IsKeyUp
+            ? Flag.Unicode | Flag.KeyUp
+            : Flag.Unicode;
+        
         return new KEYBDINPUT
         {
-            wVK = KeyCode,
-            wScan = 0,
+            wVK = 0,
+            wScan = Character,
             dwFlags = flags,
             time = Timestamp,
             dwExtraInfo = ExtraInfo

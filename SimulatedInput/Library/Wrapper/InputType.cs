@@ -1,4 +1,4 @@
-﻿namespace SimulatedInput.library.wrapper;
+﻿namespace SimulatedInput.Library.Wrapper;
 
 public enum InputType
 {

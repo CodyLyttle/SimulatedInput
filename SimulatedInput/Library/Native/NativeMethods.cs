@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
-using SimulatedInput.library.native.structs;
+using SimulatedInput.Library.Native.Structs;
 
-namespace SimulatedInput.library.native;
+namespace SimulatedInput.Library.Native;
 
 public class NativeMethods
 {

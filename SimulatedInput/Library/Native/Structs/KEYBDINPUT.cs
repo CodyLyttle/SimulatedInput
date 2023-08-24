@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace SimulatedInput.library.native.structs;
+namespace SimulatedInput.Library.Native.Structs;
 
 /// <summary>
 /// Represents a Win32 KEYBDINPUT structure. <br/>

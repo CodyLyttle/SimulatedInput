@@ -1,6 +1,6 @@
-﻿using SimulatedInput.library.native.structs;
+﻿using SimulatedInput.Library.Native.Structs;
 
-namespace SimulatedInput.library.wrapper;
+namespace SimulatedInput.Library.Wrapper;
 
 public interface IInputAction
 {

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using SimulatedInput.library;
-using SimulatedInput.library.wrapper;
+using SimulatedInput.Library;
+using SimulatedInput.Library.Wrapper;
 
 namespace SimulatedInput
 {

@@ -1,8 +1,8 @@
 ﻿using System;
-using SimulatedInput.library.native.structs;
-using SimulatedInput.library.native.unions;
+using SimulatedInput.Library.Native;
+using SimulatedInput.Library.Native.Structs;
 
-namespace SimulatedInput.library.wrapper;
+namespace SimulatedInput.Library.Wrapper;
 
 public sealed class ScanCodeInputAction : IInputAction, IInteroperable<KEYBDINPUT>
 {
