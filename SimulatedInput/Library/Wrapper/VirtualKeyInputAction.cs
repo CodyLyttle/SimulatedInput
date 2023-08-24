@@ -1,4 +1,5 @@
 ﻿using System;
+using SimulatedInput.Library.Enum;
 using SimulatedInput.Library.Native;
 using SimulatedInput.Library.Native.Structs;
 
@@ -12,18 +13,14 @@ public sealed class VirtualKeyInputAction : IInputAction, IInteroperable<KEYBDIN
     }
 
     public InputType Type => InputType.Keyboard;
-    public ushort KeyCode { get; }
+    public VirtualKeyCode KeyCode { get; }
     public bool IsKeyUp { get; }
     public uint Timestamp { get; set; } = 0;
     public UIntPtr ExtraInfo { get; set; } = UIntPtr.Zero;
 
 
-    public VirtualKeyInputAction(ushort keyCode, bool isKeyUp)
+    public VirtualKeyInputAction(VirtualKeyCode keyCode, bool isKeyUp)
     {
-        if (keyCode > 254)
-            throw new ArgumentOutOfRangeException(nameof(keyCode), keyCode,
-                "Must be a virtual key code in the range of 0-254");
-
         KeyCode = keyCode;
         IsKeyUp = isKeyUp;
     }
@@ -36,7 +33,7 @@ public sealed class VirtualKeyInputAction : IInputAction, IInteroperable<KEYBDIN
 
         return new KEYBDINPUT
         {
-            wVK = KeyCode,
+            wVK = (ushort)KeyCode,
             wScan = 0,
             dwFlags = flags,
             time = Timestamp,

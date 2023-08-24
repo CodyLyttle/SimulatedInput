@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using SimulatedInput.Library;
+using SimulatedInput.Library.Enum;
 using SimulatedInput.Library.Wrapper;
 
 namespace SimulatedInput
@@ -22,21 +23,25 @@ namespace SimulatedInput
 
         private async void SendInputButtonOnClick(object sender, RoutedEventArgs e)
         {
-            await SendDelayedInput(DelayTime, new ushort[]
+            await SendDelayedInput(DelayTime, new VirtualKeyCode[]
             {
-                0x48, 0x45, 0x4C, 0x4C, 0x4F // 'hello'
+                VirtualKeyCode.H, 
+                VirtualKeyCode.E, 
+                VirtualKeyCode.L, 
+                VirtualKeyCode.L, 
+                VirtualKeyCode.O
             });
         }
 
-        private async Task SendDelayedInput(TimeSpan delayTime, IEnumerable<ushort> virtualKeyCodes)
+        private async Task SendDelayedInput(TimeSpan delayTime, IEnumerable<VirtualKeyCode> virtualKeyCodes)
         {
             await Task.Delay(delayTime);
 
             List<IInputAction> inputActions = new();
-            foreach (ushort vk in virtualKeyCodes)
+            foreach (VirtualKeyCode keyCode in virtualKeyCodes)
             {
-                inputActions.Add(new VirtualKeyInputAction(vk, false));
-                inputActions.Add(new VirtualKeyInputAction(vk, true));
+                inputActions.Add(new VirtualKeyInputAction(keyCode, false));
+                inputActions.Add(new VirtualKeyInputAction(keyCode, true));
             }
 
             _inputSender.SendKeystrokes(inputActions.ToArray());
