@@ -59,7 +59,7 @@ public sealed class ScanCodeInputAction : IInputAction, IInteroperable<KEYBDINPU
     {
         return new INPUT
         {
-            type = (int)InputType.Keyboard,
+            type = (uint)Type,
             args = new InputArgumentsUnion(ToInteropStruct())
         };
     }

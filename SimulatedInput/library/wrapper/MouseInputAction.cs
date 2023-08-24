@@ -49,7 +49,7 @@ public class MouseInputAction : IInputAction, IInteroperable<MOUSEINPUT>
     {
         return new INPUT
         {
-            type = (int)InputType.Mouse,
+            type = (uint)Type,
             args = new InputArgumentsUnion(ToInteropStruct())
         };
     }

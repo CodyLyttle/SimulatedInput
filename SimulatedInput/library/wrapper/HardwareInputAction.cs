@@ -24,7 +24,7 @@ public class HardwareInputAction : IInputAction, IInteroperable<HARDWAREINPUT>
     {
         return new INPUT
         {
-            type = (int)InputType.Keyboard,
+            type = (uint)Type,
             args = new InputArgumentsUnion(ToInteropStruct())
         };
     }
