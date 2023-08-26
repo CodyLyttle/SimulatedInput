@@ -5,7 +5,7 @@ using SimulatedInput.Remote.Messages.Handlers;
 
 namespace SimulatedInput.Remote;
 
-public static class RemoteMessageRelay
+public class RemoteMessageRelay : IRemoteMessageRelay
 {
     private static readonly Dictionary<Type, object> MappedHandlers = new()
     {
@@ -16,7 +16,7 @@ public static class RemoteMessageRelay
         [typeof(RemoteText)] = new RemoteTextHandler(),
     };
 
-    public static void HandleMessage<T>(T message)
+    public void HandleMessage<T>(T message)
     {
         if (MappedHandlers.TryGetValue(typeof(T), out object? handlerObj)
             && handlerObj is IRemoteMessageHandler<T> handler)
