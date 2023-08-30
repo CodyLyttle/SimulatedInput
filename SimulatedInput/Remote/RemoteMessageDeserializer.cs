@@ -2,7 +2,7 @@
 
 namespace SimulatedInput.Remote;
 
-public class RemoteRemoteMessageDeserializer : IRemoteMessageDeserializer
+public class RemoteMessageDeserializer : IRemoteMessageDeserializer
 {
     public T? Deserialize<T>(byte[] data)
     {

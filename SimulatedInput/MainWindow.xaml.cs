@@ -1,24 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using SimulatedInput.Library;
 using SimulatedInput.Library.Enum;
+using SimulatedInput.Remote;
 
 namespace SimulatedInput
 {
     public partial class MainWindow : Window
     {
         private static readonly TimeSpan DelayTime = TimeSpan.FromSeconds(3);
-
+        private RemoteInputSender _remote = new(
+            new IPEndPoint(IPAddress.Any, 12640));
+        
         public MainWindow()
         {
             InitializeComponent();
             SendInputButton.Click += SendInputButtonOnClick;
             SendInputTextBox.PreviewKeyDown += SendInputTextBoxOnPreviewKeyDown;
+            _remote.StartRemoteListening();
         }
-
+        
         private async void SendInputButtonOnClick(object sender, RoutedEventArgs e)
         {
             await SendDelayedInput(DelayTime, new []

@@ -5,22 +5,28 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SimulatedInput.RemoteConnection;
+namespace SimulatedInput.Remote;
 
 public class RemoteConnectionManager : IDisposable
 {
+    private readonly IRemoteMessageDeserializer _deserializer;
+    private readonly IRemoteMessageRelay _relay;
     private readonly TcpListener _listener;
     private CancellationTokenSource? _listenCts;
     private Task? _listenTask;
 
     public bool IsListening => _listenTask != null && _listenCts is {IsCancellationRequested: false};
     
-    public RemoteConnectionManager(IPEndPoint localEndpoint)
+    public RemoteConnectionManager(IRemoteMessageDeserializer deserializer, 
+        IRemoteMessageRelay relay, 
+        IPEndPoint localEndpoint)
     {
+        _deserializer = deserializer;
+        _relay = relay;
         _listener = new TcpListener(localEndpoint);
     }
     
-    public event EventHandler<Socket>? ClientConnected;
+    public event EventHandler<RemoteConnection>? ClientConnected;
     public event EventHandler<Exception>? ListenerException;
 
     public void StartListening()
@@ -39,7 +45,8 @@ public class RemoteConnectionManager : IDisposable
                 while (true)
                 {
                     Socket client = await _listener.AcceptSocketAsync(token);
-                    ClientConnected?.Invoke(this, client);
+                    RemoteConnection remoteConnection = new(_deserializer, _relay, client);
+                    ClientConnected?.Invoke(this, remoteConnection);
                 }
             }
             catch (TaskCanceledException)
