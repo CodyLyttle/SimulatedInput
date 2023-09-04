@@ -13,15 +13,14 @@ namespace SimulatedInput
     public partial class MainWindow : Window
     {
         private static readonly TimeSpan DelayTime = TimeSpan.FromSeconds(3);
-        private RemoteInputSender _remote = new(
-            new IPEndPoint(IPAddress.Any, 12640));
+        private readonly RemoteInputServer _remoteConnections = new(new IPEndPoint(IPAddress.Any, 12640));
         
         public MainWindow()
         {
             InitializeComponent();
             SendInputButton.Click += SendInputButtonOnClick;
             SendInputTextBox.PreviewKeyDown += SendInputTextBoxOnPreviewKeyDown;
-            _remote.StartRemoteListening();
+            _remoteConnections.StartAcceptingConnections();
         }
         
         private async void SendInputButtonOnClick(object sender, RoutedEventArgs e)

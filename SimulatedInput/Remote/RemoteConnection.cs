@@ -1,176 +1,233 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using SimulatedInput.Remote.Exceptions;
 using SimulatedInput.Remote.Messages;
-using SimulatedInput.Remote.Messages.Events;
 
 namespace SimulatedInput.Remote;
 
-public class RemoteConnection : IDisposable
+public abstract class RemoteConnection<TConn> : IRemoteConnection
+    where TConn : IDisposable
 {
-    private CancellationTokenSource? _receiveMessageCts;
-    private Task? _receiveMessageTask;
+    private bool _isDisposed;
+    private readonly object _lock = new();
     private readonly IRemoteMessageDeserializer _deserializer;
     private readonly IRemoteMessageRelay _relay;
-    private readonly Socket _remoteClient;
-    public event EventHandler<Exception>? UnrecoverableException;
-    public event EventHandler<BadMessageEventArgs>? BadMessageReceived;
-    public event EventHandler<UnknownMessageEventArgs>? UnknownMessageReceived;
+    private readonly CancellationTokenSource _receiveCts = new();
 
-    public bool IsListening => _remoteClient.Connected
-                               && _receiveMessageTask != null
-                               && _receiveMessageCts is {IsCancellationRequested: false};
+    protected abstract bool IsConnected { get; }
 
-    public RemoteConnection(IRemoteMessageDeserializer deserializer,
-        IRemoteMessageRelay relay,
-        Socket remoteClient)
+    public TConn Connection { get; }
+
+    private RemoteConnectionState? _state;
+
+    public RemoteConnectionState State
+    {
+        get
+        {
+            _state ??= IsConnected
+                ? RemoteConnectionState.Open
+                : RemoteConnectionState.Closed;
+
+            return _state.Value;
+        }
+
+        private set => _state = value;
+    }
+
+    protected RemoteConnection(IRemoteMessageDeserializer deserializer, IRemoteMessageRelay relay, TConn connection)
     {
         _deserializer = deserializer;
         _relay = relay;
-        _remoteClient = remoteClient;
+        Connection = connection;
     }
 
-    public void StartListening()
+    public event EventHandler<ConnectionClosedException>? ClosedByClient;
+    public event EventHandler<MessageFormatException>? BadMessageFormat;
+    public event EventHandler<MessageDeserializerException>? FailedToDeserialize;
+
+    public void BeginReceivingMessages()
     {
-        if (IsListening)
-            throw new InvalidOperationException("Already listening.");
-
-        _receiveMessageCts = new CancellationTokenSource();
-        _receiveMessageTask = ReceiveMessageLoopAsync(_receiveMessageCts.Token);
-        _receiveMessageTask.Start();
-    }
-
-    public void StopListening()
-    {
-        if (!IsListening)
-            throw new InvalidOperationException("Not listening.");
-
-        // Fire and forget.
-        Task.Run(CancelListenTask);
-    }
-
-    public async Task StopListeningAsync()
-    {
-        if (!IsListening)
-            throw new InvalidOperationException("Not listening.");
-
-        await CancelListenTask();
-    }
-
-    private async Task CancelListenTask()
-    {
-        // Handled by IsListening calls in public methods.
-        Debug.Assert(_receiveMessageCts != null && _receiveMessageTask != null);
-
-        _receiveMessageCts.Cancel();
-        await _receiveMessageTask;
-        _receiveMessageCts.Dispose();
-        _receiveMessageCts = null;
-    }
-
-    // TODO: Handle client connection closed.
-    // 1) When ReceiveAsync returns 0 bytes. (graceful)
-    // 2) When SocketException occurs. (forced or unexpected)
-    private async Task ReceiveMessageLoopAsync(CancellationToken token)
-    {
-        while (!token.IsCancellationRequested)
+        lock (_lock)
         {
-            // Listen for message length and type.
-            var prefixBuffer = new byte[8];
-            await _remoteClient.ReceiveAsync(prefixBuffer, SocketFlags.None, token);
+            if (State != RemoteConnectionState.Open)
+                throw new InvalidOperationException(
+                    $"{nameof(BeginReceivingMessages)} can only be called when connection state is 'Open', " +
+                    $"the current state is '{State}'.");
 
-            var msgSize = BitConverter.ToInt32(prefixBuffer);
-            if (msgSize < 0)
-            {
-                _remoteClient.Close();
-
-                Exception ex =
-                    new("Received a message of negative size, the remote client connection has been closed.");
-                UnrecoverableException?.Invoke(this, ex);
-                throw ex;
-            }
-
-            RemoteMessageType msgType = (RemoteMessageType) BitConverter.ToInt32(prefixBuffer, 4);
-
-            var msgBuffer = new byte[msgSize];
-            int remainingBytes = msgSize;
-            while (remainingBytes > 0 && !token.IsCancellationRequested)
-            {
-                int nextEmptyByte = msgSize - remainingBytes;
-                Memory<byte> virtualBuffer = new(msgBuffer, nextEmptyByte, remainingBytes);
-                remainingBytes -= await _remoteClient.ReceiveAsync(virtualBuffer, SocketFlags.None, token);
-            }
-
-            if (token.IsCancellationRequested)
-                break;
-
-            if (Enum.IsDefined(msgType))
-            {
-                ProcessMessage(msgType, msgBuffer);
-            }
-            else
-            {
-                UnknownMessageReceived?.Invoke(this,
-                    new UnknownMessageEventArgs((int) msgType, msgBuffer));
-            }
+            State = RemoteConnectionState.Receiving;
         }
 
-        throw new TaskCanceledException();
+        CancellationToken token = _receiveCts.Token;
+        Task.Run(async () =>
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    byte[] messagePrefix = await ReadBytesAsync(Connection, 8, token);
+                    var contentSize = BitConverter.ToInt32(messagePrefix);
+                    if (contentSize < 0)
+                    {
+                        CloseConnection();
+                        MessageFormatException sizeException = new("Message size was negative.");
+                        BadMessageFormat?.Invoke(this, sizeException);
+                        throw sizeException;
+                    }
+
+                    RemoteMessageType messageType = (RemoteMessageType) BitConverter.ToInt32(messagePrefix, 4);
+                    byte[] messageContent = await ReadBytesAsync(Connection, contentSize, token);
+
+                    if (Enum.IsDefined(messageType))
+                    {
+                        ProcessMessage(messageType, messageContent);
+                    }
+                    else
+                    {
+                        MessageFormatException typeException = new($"Unknown message type: '{messageType}'.");
+                        BadMessageFormat?.Invoke(this, typeException);
+                        throw typeException;
+                    }
+                }
+            }
+            catch (ConnectionClosedException closedException)
+            {
+                ClosedByClient?.Invoke(this, closedException);
+                throw;
+            }
+
+            throw new TaskCanceledException();
+        }, token);
     }
+
+    protected abstract Task<byte[]> ReadBytesAsync(TConn connection, int bytesToRead, CancellationToken token);
+
 
     private void ProcessMessage(RemoteMessageType msgType, byte[] msgContent)
     {
         switch (msgType)
         {
             case RemoteMessageType.KeyCombination:
-                DeserializeAndHandle<RemoteKeyCombination>(msgType, msgContent);
+                DeserializeAndHandle<RemoteKeyCombination>(msgContent);
                 break;
             case RemoteMessageType.MouseButton:
-                DeserializeAndHandle<RemoteMouseButton>(msgType, msgContent);
+                DeserializeAndHandle<RemoteMouseButton>(msgContent);
                 break;
             case RemoteMessageType.MouseMove:
-                DeserializeAndHandle<RemoteMouseMove>(msgType, msgContent);
+                DeserializeAndHandle<RemoteMouseMove>(msgContent);
                 break;
             case RemoteMessageType.Scroll:
-                DeserializeAndHandle<RemoteScroll>(msgType, msgContent);
+                DeserializeAndHandle<RemoteScroll>(msgContent);
                 break;
             case RemoteMessageType.Text:
-                DeserializeAndHandle<RemoteText>(msgType, msgContent);
+                DeserializeAndHandle<RemoteText>(msgContent);
                 break;
             default:
-                // Unknown messages have already been caught by ReceiveMessageLoop.
-                // Should only throw if enum is modified or expanded without making equivalent changes to this switch.
-                throw new ArgumentOutOfRangeException(nameof(msgType), msgType,
-                    "Unsupported message type");
+            {
+                MessageFormatException typeException = new($"Unknown message type: '{msgType}'.");
+                BadMessageFormat?.Invoke(this, typeException);
+                throw typeException;
+            }
         }
     }
 
-    private void DeserializeAndHandle<T>(RemoteMessageType messageType, byte[] data)
+    private void DeserializeAndHandle<T>(byte[] data)
     {
+        T? message;
+        
         try
         {
-            T? message = _deserializer.Deserialize<T>(data);
+            message = _deserializer.Deserialize<T>(data);
             if (message is null)
             {
-                BadMessageReceived?.Invoke(this,
-                    new BadMessageEventArgs(messageType, data, "Deserialized to null"));
+                MessageDeserializerException ex = new("Message deserialized as null.");
+                FailedToDeserialize?.Invoke(this, ex);
+                throw ex;
             }
-            else
-            {
-                _relay.HandleMessage(message);
-            }
+        }
+        catch (Exception ex)
+        {
+            MessageDeserializerException wrappedEx = new(ex.Message, ex);
+            
+            FailedToDeserialize?.Invoke(this, wrappedEx);
+            throw wrappedEx;
+        }
+
+        // Relay shouldn't throw, although an uncaught exception would cause the receive message loop to fail silently.
+        try
+        {
+            _relay.HandleMessage(message);
         }
         catch (Exception e)
         {
-            BadMessageReceived?.Invoke(this,
-                new BadMessageEventArgs(messageType, data, e.Message));
+            Debug.WriteLine(e);
         }
     }
 
+    public void CloseConnection()
+    {
+        lock (_lock)
+        {
+            if (State is not RemoteConnectionState.Open or RemoteConnectionState.Receiving)
+                throw new InvalidOperationException($"Connection is already {State}.");
+
+            State = RemoteConnectionState.Closing;
+
+            try
+            {
+                _receiveCts.Cancel();
+            }
+            catch (Exception e)
+            {
+                LogException(e);
+            }
+
+            try
+            {
+                DoCloseConnection();
+            }
+            catch (Exception e)
+            {
+                LogException(e);
+            }
+
+            State = RemoteConnectionState.Closed;
+
+            void LogException(Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+        }
+    }
+
+    protected abstract void DoCloseConnection();
+
     public void Dispose()
     {
-        _remoteClient.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        lock (_lock)
+        {
+            if (_isDisposed)
+                return;
+
+            if (disposing)
+            {
+                if (State is RemoteConnectionState.Open or RemoteConnectionState.Receiving)
+                {
+                    CloseConnection();
+                }
+            
+                Connection.Dispose();
+                _receiveCts.Dispose();
+            }
+         
+            _isDisposed = true;
+        }
     }
 }
