@@ -1,4 +1,6 @@
-﻿namespace SimulatedInput.Remote.Messages;
+﻿using System.Text.Json.Serialization;
+
+namespace SimulatedInput.Remote.Messages;
 
 public readonly struct RemoteScroll
 {
@@ -6,6 +8,7 @@ public readonly struct RemoteScroll
     // Negative = scroll down.
     public int Delta { get; }
 
+    [JsonConstructor]
     public RemoteScroll(int delta)
     {
         Delta = delta;
