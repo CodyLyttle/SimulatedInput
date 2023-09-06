@@ -1,0 +1,23 @@
+﻿<Window x:Class="DemonstrationUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DemonstrationUI"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <StackPanel Orientation="Vertical">
+        <Button x:Name="SendInputButton"
+                Content="Send 'hello' in 3 seconds"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Height="100"
+                Width="300" />
+
+        <TextBox x:Name="SendInputTextBox"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Height="100"
+                 Width="300" />
+    </StackPanel>
+</Window>
