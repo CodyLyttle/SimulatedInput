@@ -26,4 +26,9 @@
       <ProjectReference Include="..\SimulatedInput.Remote\SimulatedInput.Remote.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Mocks" />
+      <Folder Include="Unit" />
+    </ItemGroup>
+
 </Project>
