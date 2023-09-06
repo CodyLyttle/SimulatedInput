@@ -96,6 +96,8 @@ public class RemoteInputServer : IDisposable
                             return;
                         }
 
+                        newConnection.BeginReceivingMessages();
+                        _connections.Add(newConnection);
                         ClientConnected?.Invoke(this, newConnection);
                     }
                     catch (Exception ex)
