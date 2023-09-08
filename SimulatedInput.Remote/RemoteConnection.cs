@@ -72,7 +72,7 @@ public abstract class RemoteConnection<TConn> : IRemoteConnection
                     {
                         CloseConnection();
                         MessageFormatException sizeException = new("Message size was negative.");
-                        BadMessageFormat?.Invoke(this, sizeException);
+                        NotifyMessageFormatException(sizeException);
                         throw sizeException;
                     }
 
@@ -86,14 +86,14 @@ public abstract class RemoteConnection<TConn> : IRemoteConnection
                     else
                     {
                         MessageFormatException typeException = new($"Unknown message type: '{messageType}'.");
-                        BadMessageFormat?.Invoke(this, typeException);
+                        NotifyMessageFormatException(typeException);
                         throw typeException;
                     }
                 }
             }
             catch (ConnectionClosedException closedException)
             {
-                ClosedByClient?.Invoke(this, closedException);
+                NotifyConnectionClosedException(closedException);
                 throw;
             }
 
@@ -126,7 +126,7 @@ public abstract class RemoteConnection<TConn> : IRemoteConnection
             default:
             {
                 MessageFormatException typeException = new($"Unknown message type: '{msgType}'.");
-                BadMessageFormat?.Invoke(this, typeException);
+                NotifyMessageFormatException(typeException);
                 throw typeException;
             }
         }
@@ -141,17 +141,16 @@ public abstract class RemoteConnection<TConn> : IRemoteConnection
             message = _deserializer.Deserialize<T>(data);
             if (message is null)
             {
-                MessageDeserializerException ex = new("Message deserialized as null.");
-                FailedToDeserialize?.Invoke(this, ex);
-                throw ex;
+                MessageDeserializerException nullException = new("Message deserialized as null.");
+                NotifyDeserializerException(nullException);
+                throw nullException;
             }
         }
         catch (Exception ex)
         {
-            MessageDeserializerException wrappedEx = new(ex.Message, ex);
-            
-            FailedToDeserialize?.Invoke(this, wrappedEx);
-            throw wrappedEx;
+            MessageDeserializerException wrappedException = new(ex.Message, ex);
+            NotifyDeserializerException(wrappedException);
+            throw wrappedException;
         }
 
         // Relay shouldn't throw, although an uncaught exception would cause the receive message loop to fail silently.
@@ -229,5 +228,20 @@ public abstract class RemoteConnection<TConn> : IRemoteConnection
          
             _isDisposed = true;
         }
+    }
+
+    private void NotifyConnectionClosedException(ConnectionClosedException e)
+    {
+        ClosedByClient?.Invoke(this, e);
+    }
+
+    private void NotifyMessageFormatException(MessageFormatException e)
+    {
+        BadMessageFormat?.Invoke(this, e);
+    }
+
+    private void NotifyDeserializerException(MessageDeserializerException e)
+    {
+        FailedToDeserialize?.Invoke(this, e);
     }
 }

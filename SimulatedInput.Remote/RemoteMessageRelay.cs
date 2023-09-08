@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System.Diagnostics;
 using SimulatedInput.Remote.Messages;
 using SimulatedInput.Remote.Messages.Handlers;
 
@@ -18,6 +18,12 @@ public class RemoteMessageRelay : IRemoteMessageRelay
 
     public void HandleMessage<T>(T message)
     {
+        if (message is RemoteText text)
+        {
+            Debug.WriteLine(text.Content);
+        }
+        
+        
         if (MappedHandlers.TryGetValue(typeof(T), out object? handlerObj)
             && handlerObj is IRemoteMessageHandler<T> handler)
         {

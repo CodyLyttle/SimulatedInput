@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,19 +26,19 @@ public class RemoteInputServer : IDisposable
     public IPEndPoint LocalEndPoint { get; }
     public bool IsReceivingConnections { get; private set; }
 
-    public RemoteInputServer(IPEndPoint endpoint) 
+    public RemoteInputServer(IPEndPoint endpoint)
         : this(endpoint, new RemoteMessageDeserializer(), new RemoteMessageRelay())
     {
     }
-    
-    public RemoteInputServer(IPEndPoint localEndpoint, 
+
+    public RemoteInputServer(IPEndPoint localEndpoint,
         IRemoteMessageDeserializer deserializer,
         IRemoteMessageRelay relay)
     {
         LocalEndPoint = localEndpoint;
         _deserializer = deserializer;
         _relay = relay;
-        
+
         _listener = new TcpListener(localEndpoint);
         _connections = new List<IRemoteConnection>();
         Connections = new ReadOnlyCollection<IRemoteConnection>(_connections);
@@ -190,11 +192,67 @@ public class RemoteInputServer : IDisposable
         return Task.FromResult(socket);
     }
 
-    protected virtual async Task<RemoteWebSocketConnection> InitializeWebSocket(
+    protected virtual async Task<RemoteWebSocketConnection?> InitializeWebSocket(
         IRemoteMessageDeserializer deserializer, IRemoteMessageRelay relay, Socket connection, CancellationToken token)
     {
-        // TODO: Receive the rest of the GET message and complete the websocket upgrade.
-        throw new NotImplementedException();
+        // Initialize the builder with the previously received handshake code.
+        StringBuilder receivedText = new("GET");
+        const string endMarker = "\r\n\r\n";
+
+        // Receive the remaining data from the websocket request.
+        while (!token.IsCancellationRequested)
+        {
+            var buffer = new byte [256];
+
+            int received = await connection.ReceiveAsync(buffer);
+            if (received == 0)
+            {
+                Debug.WriteLine("Connection terminated gracefully during handshake.");
+                return null;
+            }
+
+            receivedText.Append(Encoding.UTF8.GetString(buffer, 0, received));
+            if (receivedText.ToString().Contains(endMarker))
+                break;
+        }
+
+        const string targetHeader = "Sec-WebSocket-Key:";
+        string? secureKey = null;
+
+        string content = receivedText.ToString();
+        using StringReader reader = new(content);
+        while (await reader.ReadLineAsync(token) is { } nextLine)
+        {
+            if (nextLine.StartsWith(targetHeader))
+            {
+                secureKey = nextLine.Substring(targetHeader.Length).Trim();
+                break;
+            }
+        }
+
+        if (secureKey == null)
+        {
+            Debug.WriteLine("Invalid websocket upgrade request.");
+            return null;
+        }
+
+        const string webSocketGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        string secureKeyWithGuid = secureKey + webSocketGuid;
+        string secConfirmation = Convert.ToBase64String(SHA1.Create()
+            .ComputeHash(Encoding.UTF8.GetBytes(secureKeyWithGuid)));
+        
+        // Create the HTTP response.
+        string response = $"HTTP/1.1 101 Switching Protocols\r\n" +
+                          $"Upgrade: websocket\r\n" +
+                          $"Connection: Upgrade\r\n" +
+                          $"Sec-WebSocket-Accept: {secConfirmation}\r\n" +
+                          $"\r\n";
+
+        byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+        await connection.SendAsync(responseBytes);
+
+        var webSocket = WebSocket.CreateFromStream(new NetworkStream(connection), true, null, TimeSpan.FromSeconds(30));
+        return new RemoteWebSocketConnection(_deserializer, _relay, webSocket);
     }
 
     public void Dispose()
