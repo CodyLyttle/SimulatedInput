@@ -4,10 +4,36 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Configurations>Debug;Release;NuGetRelease</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <!-- Use local reference on Debug & Release builds -->
+    <ItemGroup Condition="'$(Configuration)'!='NuGetRelease'">
+      <ProjectReference Include="..\SimulatedInput.Core\SimulatedInput.Core.csproj" />
+    </ItemGroup>
+
+    <!-- Use NuGet reference on NuGetRelease build -->
+    <ItemGroup Condition="'$(Configuration)'=='NuGetRelease'">
+        <PackageReference Include="SimulatedInput.Core" Version="1.0.0-alpha" />
+    </ItemGroup>
+    
+    <PropertyGroup>
+        <PackageId>SimulatedInput.Remote</PackageId>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>1.0.0-alpha</Version>
+        <Authors>Cody Lyttle</Authors>
+        <Description>Remotely simulate mouse and keyboard inputs on Windows.</Description>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'NuGetRelease' ">
+      <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SimulatedInput.Core\SimulatedInput.Core.csproj" />
+        <None Include="LICENSE.txt" Pack="true" PackagePath="" />
+        <None Include="README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
 </Project>

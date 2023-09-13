@@ -14,27 +14,35 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		NuGetRelease|Any CPU = NuGetRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{14282BF0-FF29-433A-98C9-9E0FABF3C6D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{14282BF0-FF29-433A-98C9-9E0FABF3C6D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14282BF0-FF29-433A-98C9-9E0FABF3C6D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14282BF0-FF29-433A-98C9-9E0FABF3C6D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14282BF0-FF29-433A-98C9-9E0FABF3C6D3}.NuGetRelease|Any CPU.ActiveCfg = NuGetRelease|Any CPU
+		{14282BF0-FF29-433A-98C9-9E0FABF3C6D3}.NuGetRelease|Any CPU.Build.0 = NuGetRelease|Any CPU
 		{975B1137-42F4-4474-8465-CA850A0B6738}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{975B1137-42F4-4474-8465-CA850A0B6738}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{975B1137-42F4-4474-8465-CA850A0B6738}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{975B1137-42F4-4474-8465-CA850A0B6738}.Release|Any CPU.Build.0 = Release|Any CPU
+		{975B1137-42F4-4474-8465-CA850A0B6738}.NuGetRelease|Any CPU.ActiveCfg = NuGetRelease|Any CPU
+		{975B1137-42F4-4474-8465-CA850A0B6738}.NuGetRelease|Any CPU.Build.0 = NuGetRelease|Any CPU
 		{A5B9F10D-113D-44AB-8B60-F7B0B6F2FD06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A5B9F10D-113D-44AB-8B60-F7B0B6F2FD06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5B9F10D-113D-44AB-8B60-F7B0B6F2FD06}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5B9F10D-113D-44AB-8B60-F7B0B6F2FD06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5B9F10D-113D-44AB-8B60-F7B0B6F2FD06}.NuGetRelease|Any CPU.ActiveCfg = NuGetRelease|Any CPU
 		{2D020910-D7FE-4EE5-ABD1-A122235284B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D020910-D7FE-4EE5-ABD1-A122235284B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D020910-D7FE-4EE5-ABD1-A122235284B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D020910-D7FE-4EE5-ABD1-A122235284B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D020910-D7FE-4EE5-ABD1-A122235284B5}.NuGetRelease|Any CPU.ActiveCfg = NuGetRelease|Any CPU
 		{18C3C5F7-ACA1-4EEF-B9CD-36D5633B5DB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{18C3C5F7-ACA1-4EEF-B9CD-36D5633B5DB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18C3C5F7-ACA1-4EEF-B9CD-36D5633B5DB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18C3C5F7-ACA1-4EEF-B9CD-36D5633B5DB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18C3C5F7-ACA1-4EEF-B9CD-36D5633B5DB4}.NuGetRelease|Any CPU.ActiveCfg = NuGetRelease|Any CPU
 	EndGlobalSection
 EndGlobal
