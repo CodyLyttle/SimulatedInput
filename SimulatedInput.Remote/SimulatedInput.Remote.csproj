@@ -22,7 +22,7 @@
         <PackageId>SimulatedInput.Remote</PackageId>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Version>1.0.0-alpha</Version>
+        <Version>1.0.1-alpha</Version>
         <Authors>Cody Lyttle</Authors>
         <Description>Remotely simulate mouse and keyboard inputs on Windows.</Description>
     </PropertyGroup>

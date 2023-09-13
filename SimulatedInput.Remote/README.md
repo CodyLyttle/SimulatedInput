@@ -1,5 +1,5 @@
 ﻿# SimulatedInput.Remote
-**Version**: 1.0.0-alpha pre-release (subject to changes)
+**Version**: 1.0.1-alpha pre-release (subject to changes)
 
 ## Overview
 SimulatedInput.Remote allows for the opening of TCP or websocket connections to receive input messages. Once received, these input messages are executed by SimulatedInput.Core, providing a remote interface for simulating input.

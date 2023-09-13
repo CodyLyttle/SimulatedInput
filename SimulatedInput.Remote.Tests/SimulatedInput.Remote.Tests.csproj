@@ -17,6 +17,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentAssertions" Version="6.12.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
         <PackageReference Include="Moq" Version="4.20.69" />
         <PackageReference Include="xunit" Version="2.4.2" />
@@ -36,7 +37,6 @@
 
     <ItemGroup>
       <Folder Include="Mocks" />
-      <Folder Include="Unit" />
     </ItemGroup>
 
 </Project>

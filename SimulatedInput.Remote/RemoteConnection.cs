@@ -168,8 +168,8 @@ public abstract class RemoteConnection<TConn> : IRemoteConnection
     {
         lock (_lock)
         {
-            if (State is not RemoteConnectionState.Open or RemoteConnectionState.Receiving)
-                throw new InvalidOperationException($"Connection is already {State}.");
+            if (State == RemoteConnectionState.Closed)
+                throw new InvalidOperationException($"Connection is already closed.");
 
             State = RemoteConnectionState.Closing;
 
